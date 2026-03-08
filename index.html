@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Analyzer</title>
+    <style>
+        :root {
+            --primary-color: #673ab7;
+            --secondary-color: #3f51b5;
+            --dark-bg: #121212;
+            --dark-surface: #1e1e1e;
+            --text-color: #e0e0e0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--dark-surface);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+        
+        .upload-container {
+            position: relative;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(103, 58, 183, 0.3);
+        }
+        
+        .upload-btn i {
+            margin-right: 8px;
+        }
+        
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+        
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .text-area {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            margin: 1rem 0;
+            background-color: rgba(63, 81, 181, 0.1);
+            color: var(--text-color);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border 0.3s ease;
+        }
+        
+        .text-area:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(45deg, var(--primary-color), #9c27b0);
+            color: white;
+            padding: 12px 36px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 1rem 0 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(103, 58, 183, 0.3);
+        }
+        
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .analyze-btn:hover::before {
+            left: 100%;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            margin: 1rem 0 2rem;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #ff9800, #f44336, #9c27b0, #673ab7, #3f51b5);
+            background-size: 300% 100%;
+            animation: gradientShift 2s linear infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .results {
+            background-color: rgba(38, 38, 38, 0.7);
+            padding: 2rem;
+            border-radius: 10px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .result-value {
+            font-size: 18px;
+        }
+        
+        footer {
+            margin-top: 2rem;
+            color: #777;
+            font-size: 14px;
+            padding: 1rem;
+        }
+        
+        .search-container {
+            margin-top: 2rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .search-input {
+            width: 80%;
+            padding: 10px 15px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 20px;
+            background-color: rgba(63, 81, 181, 0.1);
+            color: var(--text-color);
+            font-size: 16px;
+            margin-bottom: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .search-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            background-color: #7e57c2;
+        }
+        
+        .search-results {
+            margin-top: 1rem;
+            width: 100%;
+            text-align: left;
+            display: none;
+        }
+        
+        .highlight {
+            background-color: rgba(255, 193, 7, 0.3);
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Analyzer</h1>
+        
+        <div class="upload-container">
+            <button class="upload-btn">
+                <i>📂</i> Upload Text File
+            </button>
+            <input type="file" class="file-input" id="fileInput" accept=".txt">
+        </div>
+        
+        <textarea class="text-area" id="textInput" placeholder="Enter your text here or upload a file..."></textarea>
+        
+        <button class="analyze-btn" id="analyzeBtn">Analyze</button>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="result-item">
+                <span class="result-label">Character Count:</span>
+                <span class="result-value" id="charCount">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Paragraph Count:</span>
+                <span class="result-value" id="paragraphCount">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Line Count:</span>
+                <span class="result-value" id="lineCount">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Word Count:</span>
+                <span class="result-value" id="wordCount">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Estimated Reading Time:</span>
+                <span class="result-value" id="readingTime">0 min</span>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search for words or phrases...">
+            <button class="search-btn" id="searchBtn">Search</button>
+            <div class="search-results" id="searchResults">
+                <p>No results found.</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        Design By JGS Lanka Education Platform
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const textInput = document.getElementById('textInput');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const results = document.getElementById('results');
+            const charCount = document.getElementById('charCount');
+            const paragraphCount = document.getElementById('paragraphCount');
+            const lineCount = document.getElementById('lineCount');
+            const wordCount = document.getElementById('wordCount');
+            const readingTime = document.getElementById('readingTime');
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const searchResults = document.getElementById('searchResults');
+            
+            // File upload handler
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    textInput.value = e.target.result;
+                };
+                reader.readAsText(file);
+            });
+            
+            // Analyze button click handler
+            analyzeBtn.addEventListener('click', function() {
+                const text = textInput.value.trim();
+                
+                if (text === '') {
+                    alert('Please enter or upload text first!');
+                    return;
+                }
+                
+                // Show progress bar
+                progressContainer.style.display = 'block';
+                results.style.display = 'none';
+                
+                // Animate progress bar
+                let width = 0;
+                const interval = setInterval(function() {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        setTimeout(showResults, 300);
+                    } else {
+                        width += 1;
+                        progressBar.style.width = width + '%';
+                    }
+                }, 30);
+                
+                function showResults() {
+                    // Calculate metrics
+                    const chars = text.length;
+                    const paragraphs = text.split(/\n\s*\n/).filter(Boolean).length || 1;
+                    const lines = text.split('\n').length;
+                    const words = text.split(/\s+/).filter(Boolean).length;
+                    
+                    // Average reading speed: 200-250 words per minute
+                    const minutes = Math.ceil(words / 225);
+                    
+                    // Update results
+                    charCount.textContent = chars;
+                    paragraphCount.textContent = paragraphs;
+                    lineCount.textContent = lines;
+                    wordCount.textContent = words;
+                    readingTime.textContent = `${minutes} min`;
+                    
+                    // Show results
+                    results.style.display = 'block';
+                }
+            });
+            
+            // Search functionality
+            searchBtn.addEventListener('click', function() {
+                const searchTerm = searchInput.value.trim();
+                const text = textInput.value;
+                
+                if (searchTerm === '' || text === '') {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                const regex = new RegExp(searchTerm, 'gi');
+                let matches = text.match(regex);
+                
+                if (matches && matches.length > 0) {
+                    // Display results with highlighted matches
+                    let displayText = text.replace(regex, match => `<span class="highlight">${match}</span>`);
+                    
+                    // Get context for each match
+                    let contextResults = '';
+                    let matchCount = matches.length;
+                    
+                    contextResults = `<p>Found ${matchCount} matches:</p>`;
+                    
+                    // Create a temporary element to parse the HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = displayText;
+                    contextResults += `<div>${tempDiv.innerHTML}</div>`;
+                    
+                    searchResults.innerHTML = contextResults;
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.innerHTML = '<p>No matches found.</p>';
+                    searchResults.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
